@@ -1,5 +1,12 @@
 # BankOs · Panel de Administración de Banco
 
+> ⚠️ **Cambio de arquitectura (importante):** esta aplicación **ya NO consume la API de Laravel**.
+> Ahora se conecta **directamente a la base de datos PostgreSQL** de BankOS (en el VPS) y ejecuta
+> toda la lógica contra la base de datos, replicando el comportamiento del backend.
+> **Configura la conexión y verifícala siguiendo [`SETUP_BASE_DE_DATOS.md`](SETUP_BASE_DE_DATOS.md).**
+> La sección «Arquitectura → Solo API» de abajo quedó obsoleta y se conserva solo como referencia.
+
+
 Aplicación web en **C# / .NET 10 (ASP.NET Core MVC)** para los **administradores de un banco** dentro de la plataforma multi-tenant **BankOs**. Consume exclusivamente la API REST de BankOs (Laravel, proyecto `192-bankroot`) correspondiente al rol `administrador`.
 
 Es la aplicación complementaria al panel **SuperAdmin** (gestión de bancos/tenants). Mientras el SuperAdmin administra *los bancos*, esta app administra *el interior de un banco*: sus clientes, cuentas, transacciones, soporte y configuración.

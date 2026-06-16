@@ -152,6 +152,31 @@ public class EmailService
         }
     }
 
+    // ── PQRS response (the dead API used to send this) ────────────────────────
+
+    public Task SendPqrsResponseAsync(string to, string name, string type, string subject, string response)
+    {
+        var typeLabel = type switch
+        {
+            "queja" => "Queja",
+            "reclamo" => "Reclamo",
+            "sugerencia" => "Sugerencia",
+            _ => "Petición",
+        };
+        var safeResponse = Enc(response).Replace("\n", "<br>");
+        var body = Shell("#0463fd", "RESPUESTA A TU PQRS", "Tu solicitud fue respondida",
+            $"Hola {Enc(name)}, el equipo del banco respondió tu {typeLabel.ToLowerInvariant()}.",
+            $"""
+            {Panel("Tu solicitud", "#7c12fd", $"""
+                {Row("Tipo", typeLabel)}
+                {Row("Asunto", Enc(subject))}
+            """)}
+            {Panel("Respuesta del banco", "#22c55e",
+                $"<div style=\"color:#0f172a;font-size:14px;line-height:1.7\">{safeResponse}</div>")}
+            """);
+        return SendAsync(to, $"[BankOs] Respuesta a tu PQRS · {subject}", body);
+    }
+
     // ── Transport ──────────────────────────────────────────────────────────────
 
     private async Task SendAsync(string to, string subject, string html)

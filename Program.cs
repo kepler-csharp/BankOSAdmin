@@ -1,10 +1,15 @@
+using BankAdmin.Data;
 using BankAdmin.Services;
+
+// PostgreSQL has a mixed timestamp/timestamptz schema; legacy mode avoids DateTimeKind errors.
+// Must run before any Npgsql connection is created.
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 
-// Session holds the JWT + tenant + user after login (server-side, http-only cookie reference)
+// Session holds the session token + tenant + user after login (server-side, http-only cookie reference)
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(opts =>
 {
@@ -15,13 +20,19 @@ builder.Services.AddSession(opts =>
     opts.Cookie.SameSite = SameSiteMode.Lax;
 });
 
-// Typed HttpClient against the BankOS (Laravel) tenant API (administrador scope)
-builder.Services.AddHttpClient<BankAdminApiService>();
+// PostgreSQL connection settings (the app talks directly to the BankOS database, not the Laravel API)
+builder.Services.Configure<DatabaseOptions>(builder.Configuration.GetSection("Database"));
 
-// Client notifications (user/account lifecycle) — sent from this MVC app, never the API
+// Direct-to-database data access (replaces the old HTTP API client). Stateless → singleton.
+builder.Services.AddSingleton<BankAdminApiService>();
+
+// Generic HttpClientFactory (used by the AI assistant / ChatController to reach OpenAI)
+builder.Services.AddHttpClient();
+
+// Client notifications (user/account lifecycle + PQRS responses) — sent from this MVC app
 builder.Services.AddScoped<EmailService>();
 
-// PDF certificate generation (runs in the MVC app, not the API)
+// PDF certificate generation (runs in the MVC app)
 builder.Services.AddSingleton<PdfService>();
 
 var app = builder.Build();

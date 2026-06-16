@@ -11,6 +11,13 @@
   <ItemGroup>
     <!-- Server-side PDF generation (client certificates) so the API is never hit for documents -->
     <PackageReference Include="QuestPDF" Version="2025.1.0" />
+
+    <!-- Direct database access (the Laravel API is bypassed; we talk to PostgreSQL directly) -->
+    <PackageReference Include="Npgsql" Version="9.0.3" />
+    <PackageReference Include="Dapper" Version="2.1.66" />
+
+    <!-- Verify/produce Laravel-compatible bcrypt password hashes -->
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
   </ItemGroup>
 
 </Project>

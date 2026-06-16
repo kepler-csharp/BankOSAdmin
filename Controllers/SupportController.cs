@@ -7,8 +7,13 @@ namespace BankAdmin.Controllers;
 public class SupportController : AdminControllerBase
 {
     private readonly BankAdminApiService _api;
+    private readonly EmailService _email;
 
-    public SupportController(BankAdminApiService api) => _api = api;
+    public SupportController(BankAdminApiService api, EmailService email)
+    {
+        _api = api;
+        _email = email;
+    }
 
     // ── PQRS ──────────────────────────────────────────────────────────────────
 
@@ -31,8 +36,17 @@ public class SupportController : AdminControllerBase
             return RedirectToAction("Pqrs");
         }
 
-        // The API sends the response email to the client automatically.
+        // The Laravel API used to email the client; we now do it from here.
         var err = await _api.RespondPqrsAsync(Token!, TenantId!, id, response);
+        if (err == null)
+        {
+            // Look up the ticket to notify the client by email.
+            var (items, _) = await _api.GetPqrsAsync(Token!, TenantId!);
+            var pqrs = items.FirstOrDefault(p => p.Id == id);
+            if (pqrs != null && !string.IsNullOrWhiteSpace(pqrs.UserEmail))
+                _ = _email.SendPqrsResponseAsync(pqrs.UserEmail!, pqrs.UserName ?? "", pqrs.Type, pqrs.Subject, response);
+        }
+
         TempData[err == null ? "Success" : "Error"] = err ?? "Respuesta enviada al cliente por correo.";
         return RedirectToAction("Pqrs");
     }

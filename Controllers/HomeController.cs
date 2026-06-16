@@ -19,6 +19,17 @@ public class HomeController : Controller
 
     public IActionResult Privacy() => View();
 
+    /// <summary>
+    /// Connectivity probe for the BankOS database. Open /Home/DbCheck to confirm the VPS
+    /// connection works: it reports the central DB and every bank's tenant DB + user count.
+    /// </summary>
+    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+    public async Task<IActionResult> DbCheck()
+    {
+        var report = await _api.CheckHealthAsync();
+        return Json(report);
+    }
+
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {
