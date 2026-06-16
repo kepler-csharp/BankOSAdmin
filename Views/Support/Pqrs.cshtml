@@ -1,0 +1,118 @@
+@model List<BankAdmin.Models.PqrsModel>
+@{
+    ViewBag.Title = "PQRS";
+    string TypeLabel(string t) => t switch { "pregunta" => "Pregunta", "queja" => "Queja", "reclamo" => "Reclamo", "sugerencia" => "Sugerencia", _ => t };
+    string StatusBadge(string s) => s switch
+    {
+        "resuelto" => "<span class=\"badge badge-active\">Resuelto</span>",
+        "en_revision" => "<span class=\"chip\" style=\"color:var(--blue);\">En revisión</span>",
+        _ => "<span class=\"chip\" style=\"color:#b45309;background:#fffbeb;border-color:#fcd34d;\">Pendiente</span>"
+    };
+}
+
+<main class="main">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow">@ViewBag.TenantName</div>
+            <h1 class="page-title">PQRS</h1>
+            <p class="page-subtitle">Peticiones, quejas, reclamos y sugerencias de tus clientes.</p>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success"><i class="fa-solid fa-circle-check"></i><span>@TempData["Success"]</span></div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-error"><i class="fa-solid fa-circle-exclamation"></i><span>@TempData["Error"]</span></div>
+    }
+
+    @if (Model.Count == 0)
+    {
+        <div class="card"><div class="card-body"><div class="empty"><div class="empty-title">Sin PQRS</div><div class="empty-text">No hay solicitudes de clientes por el momento.</div></div></div></div>
+    }
+    else
+    {
+        <div style="display:flex;flex-direction:column;gap:14px;">
+            @foreach (var p in Model)
+            {
+                <div class="card">
+                    <div class="card-body">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;">
+                            <div style="flex:1;min-width:220px;">
+                                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                                    <span class="chip" style="color:var(--purple);">@TypeLabel(p.Type)</span>
+                                    @Html.Raw(StatusBadge(p.Status))
+                                    <span style="color:var(--s-400);font-size:12px;">@(p.CreatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "")</span>
+                                </div>
+                                <h3 style="font-family:var(--display);font-size:16px;color:var(--ink);margin:12px 0 4px;">@p.Subject</h3>
+                                <div style="color:var(--s-400);font-size:12.5px;margin-bottom:10px;"><i class="fa-solid fa-user"></i> @(p.UserName ?? "Cliente") · @p.UserEmail</div>
+                                <p style="color:var(--s-600);font-size:14px;line-height:1.6;margin:0;">@p.Message</p>
+
+                                @if (!string.IsNullOrEmpty(p.AdminResponse))
+                                {
+                                    <div style="margin-top:14px;padding:14px 16px;background:#e6f7ee;border:1px solid #bbf7d0;border-radius:12px;">
+                                        <div style="font-size:11px;font-weight:700;color:#15803d;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;"><i class="fa-solid fa-reply"></i> Respuesta</div>
+                                        <p style="color:#166534;font-size:13.5px;line-height:1.55;margin:0;">@p.AdminResponse</p>
+                                    </div>
+                                }
+                            </div>
+                            <div style="display:flex;flex-direction:column;gap:8px;min-width:150px;">
+                                <button type="button" class="btn btn-brand btn-sm"
+                                        onclick="openRespond('@p.Id', '@Html.Raw(System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(p.Subject))')">
+                                    <i class="fa-solid fa-reply"></i> @(string.IsNullOrEmpty(p.AdminResponse) ? "Responder" : "Editar respuesta")
+                                </button>
+                                @if (p.Status == "pendiente")
+                                {
+                                    <form method="post" action="@Url.Action("MarkInReview")">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@p.Id" />
+                                        <button type="submit" class="btn btn-secondary btn-sm btn-block"><i class="fa-solid fa-clock"></i> En revisión</button>
+                                    </form>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</main>
+
+<!-- Respond modal -->
+<div class="modal-overlay" id="respondModal" onclick="if(event.target===this)closeRespond()">
+    <div class="modal" role="dialog" aria-modal="true" style="max-width:520px;">
+        <form method="post" action="@Url.Action("Respond")">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" id="rsp-id" />
+            <div class="modal-head">
+                <div class="modal-icon info"><i class="fa-solid fa-reply"></i></div>
+                <h3>Responder PQRS</h3>
+            </div>
+            <div class="modal-body">
+                <div style="color:var(--s-500);font-size:13px;margin-bottom:12px;">Asunto: <b id="rsp-subject" style="color:var(--ink);"></b></div>
+                <label class="form-label">Tu respuesta</label>
+                <textarea class="form-input" name="response" id="rsp-text" rows="5" minlength="5" placeholder="Escribe la respuesta para el cliente…" required style="resize:vertical;"></textarea>
+                <div class="form-hint">Al enviar, el cliente recibirá tu respuesta por correo y la PQRS quedará marcada como resuelta.</div>
+            </div>
+            <div class="modal-foot">
+                <button type="button" class="btn btn-secondary" onclick="closeRespond()">Cancelar</button>
+                <button type="submit" class="btn btn-brand"><i class="fa-solid fa-paper-plane"></i> Enviar respuesta</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    function openRespond(id, subject) {
+        document.getElementById('rsp-id').value = id;
+        document.getElementById('rsp-subject').textContent = subject;
+        document.getElementById('rsp-text').value = '';
+        document.getElementById('respondModal').classList.add('open');
+    }
+    function closeRespond() { document.getElementById('respondModal').classList.remove('open'); }
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeRespond(); });
+</script>
+}

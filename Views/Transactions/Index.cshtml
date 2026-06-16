@@ -1,0 +1,72 @@
+@model List<BankAdmin.Models.TransactionModel>
+@{
+    ViewBag.Title = "Transacciones";
+    var acc = ViewBag.AccountNumbers as Dictionary<string, string> ?? new();
+    var filter = ViewBag.Filter as string ?? "";
+    string AccNo(string? id) => id != null && acc.TryGetValue(id, out var n) ? n : (id ?? "—");
+    string TypeLabel(string t) => t switch { "deposit" => "Depósito", "withdrawal" => "Retiro", "transfer" => "Transferencia", _ => t };
+    string TypeClass(string t) => t switch { "deposit" => "txt-deposit", "withdrawal" => "txt-withdrawal", "transfer" => "txt-transfer", _ => "" };
+}
+
+<main class="main">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow">@ViewBag.TenantName</div>
+            <h1 class="page-title">Transacciones</h1>
+            <p class="page-subtitle">@Model.Count movimiento@(Model.Count == 1 ? "" : "s") @(string.IsNullOrEmpty(filter) ? "" : $"· filtro: {TypeLabel(filter)}").</p>
+        </div>
+        <div style="display:flex;gap:10px;">
+            <a class="btn btn-secondary" href="@Url.Action("Deposit")"><i class="fa-solid fa-plus"></i> Depósito</a>
+            <a class="btn btn-brand" href="@Url.Action("Transfer")"><i class="fa-solid fa-right-left"></i> Transferir</a>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success"><i class="fa-solid fa-circle-check"></i><span>@TempData["Success"]</span></div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-error"><i class="fa-solid fa-circle-exclamation"></i><span>@TempData["Error"]</span></div>
+    }
+
+    <div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;">
+        <a class="btn btn-sm @(filter == "" ? "btn-brand" : "btn-secondary")" href="@Url.Action("Index")">Todas</a>
+        <a class="btn btn-sm @(filter == "deposit" ? "btn-brand" : "btn-secondary")" href="@Url.Action("Index", new { type = "deposit" })">Depósitos</a>
+        <a class="btn btn-sm @(filter == "withdrawal" ? "btn-brand" : "btn-secondary")" href="@Url.Action("Index", new { type = "withdrawal" })">Retiros</a>
+        <a class="btn btn-sm @(filter == "transfer" ? "btn-brand" : "btn-secondary")" href="@Url.Action("Index", new { type = "transfer" })">Transferencias</a>
+    </div>
+
+    <div class="card">
+        <div class="card-body" style="padding:0;">
+            @if (Model.Count == 0)
+            {
+                <div class="empty"><div class="empty-title">Sin transacciones</div><div class="empty-text">No hay movimientos para este filtro.</div></div>
+            }
+            else
+            {
+                <div class="table-wrap" style="border:none;">
+                    <table class="data">
+                        <thead><tr><th>Tipo</th><th>Cuenta</th><th>Destino</th><th>Monto</th><th>Comisión</th><th>Saldo después</th><th>Estado</th><th>Fecha</th><th></th></tr></thead>
+                        <tbody>
+                        @foreach (var t in Model)
+                        {
+                            <tr>
+                                <td><span class="@TypeClass(t.Type)" style="font-weight:600;"><i class="fa-solid @(t.Type == "deposit" ? "fa-arrow-down" : t.Type == "withdrawal" ? "fa-arrow-up" : "fa-right-left")"></i> @TypeLabel(t.Type)</span></td>
+                                <td style="font-family:var(--mono);font-size:12px;">@AccNo(t.AccountId)</td>
+                                <td style="font-family:var(--mono);font-size:12px;">@(t.DestinationAccountId != null ? AccNo(t.DestinationAccountId) : "—")</td>
+                                <td style="font-weight:600;">@t.Amount.ToString("N2") @t.Currency</td>
+                                <td>@(t.Fee > 0 ? t.Fee.ToString("N2") : "—")</td>
+                                <td>@t.BalanceAfter.ToString("N2")</td>
+                                <td>@if (t.Status == "success") { <span class="badge badge-active">Exitosa</span> } else if (t.Status == "failed") { <span class="badge badge-inactive">Fallida</span> } else { <span class="chip">@t.Status</span> }</td>
+                                <td>@(t.CreatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "—")</td>
+                                <td><a class="btn btn-ghost btn-sm" href="@Url.Action("Detail", new { id = t.Id })" title="Detalle"><i class="fa-solid fa-eye"></i></a></td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</main>

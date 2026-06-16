@@ -1,0 +1,116 @@
+@model BankAdmin.Models.LoginViewModel
+@{
+    Layout = null;
+    var banks = ViewBag.Banks as List<BankModel> ?? new List<BankModel>();
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Acceso administradores · BankOs</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="~/img/favicon-32.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <style>
+        body { margin: 0; }
+        .auth { display: grid; grid-template-columns: 1.05fr 1fr; min-height: 100vh; }
+        .auth-art { position: relative; overflow: hidden; background: linear-gradient(150deg,#0a1652 0%,#0c1f6e 45%,#221a8c 78%,#3a1d9e 100%); color: #fff; padding: 56px 60px; display: flex; flex-direction: column; justify-content: space-between; }
+        .auth-art::before { content: ""; position: absolute; width: 620px; height: 620px; right: -220px; top: -180px; border-radius: 50%; background: radial-gradient(circle, rgba(124,18,253,.45), transparent 62%); }
+        .auth-art::after { content: ""; position: absolute; width: 520px; height: 520px; left: -200px; bottom: -200px; border-radius: 50%; background: radial-gradient(circle, rgba(0,168,232,.40), transparent 62%); }
+        .auth-art > * { position: relative; z-index: 1; }
+        .auth-logo { display: flex; align-items: center; gap: 13px; }
+        .auth-logo img { height: 46px; width: 46px; object-fit: contain; filter: drop-shadow(0 6px 16px rgba(0,0,0,.4)); }
+        .auth-logo .wm { font-family: var(--display); font-weight: 800; font-size: 27px; letter-spacing: -.5px; }
+        .auth-logo .wm span:nth-child(1){ color:#fff; } .auth-logo .wm span:nth-child(2){ color:#c084fc; } .auth-logo .wm span:nth-child(3){ color:#4ade80; }
+        .auth-hero h1 { font-family: var(--display); font-size: 40px; line-height: 1.1; font-weight: 800; margin: 0 0 18px; letter-spacing: -1px; }
+        .auth-hero p { color: #b9c6f5; font-size: 16px; line-height: 1.6; max-width: 440px; }
+        .auth-points { display: flex; flex-direction: column; gap: 14px; margin-top: 30px; }
+        .auth-point { display: flex; align-items: center; gap: 13px; color: #d7e0ff; font-size: 14.5px; }
+        .auth-point i { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.16); color: #fff; }
+        .auth-foot { color: #8ea2d8; font-size: 12.5px; display: flex; gap: 16px; }
+        .auth-foot a { color: #b9c6f5; text-decoration: none; }
+        .auth-form-wrap { display: flex; align-items: center; justify-content: center; padding: 40px; background: var(--s-50); }
+        .auth-card { width: 100%; max-width: 410px; }
+        .auth-card .eyebrow { color: var(--purple); font-weight: 700; font-size: 12px; letter-spacing: 1.4px; text-transform: uppercase; }
+        .auth-card h2 { font-family: var(--display); font-size: 27px; font-weight: 800; color: var(--ink); margin: 8px 0 6px; }
+        .auth-card .lead { color: var(--s-500); font-size: 14px; margin-bottom: 26px; }
+        .auth-other { text-align: center; margin-top: 22px; font-size: 13px; color: var(--s-500); }
+        .auth-other a { color: var(--blue); font-weight: 600; text-decoration: none; }
+        @@media (max-width: 900px) { .auth { grid-template-columns: 1fr; } .auth-art { display: none; } }
+    </style>
+</head>
+<body>
+<div class="auth">
+    <div class="auth-art">
+        <div class="auth-logo">
+            <img src="~/img/logo.png" alt="BankOs" />
+            <span class="wm"><span>Bank</span><span>O</span><span>s</span></span>
+        </div>
+        <div class="auth-hero">
+            <h1>Administra tu banco<br />en una sola plataforma.</h1>
+            <p>Gestiona clientes, cuentas, transacciones y soporte de tu entidad con seguridad de nivel bancario.</p>
+            <div class="auth-points">
+                <div class="auth-point"><i class="fa-solid fa-users"></i> Clientes y cuentas bajo control total</div>
+                <div class="auth-point"><i class="fa-solid fa-right-left"></i> Depósitos y transferencias con trazabilidad</div>
+                <div class="auth-point"><i class="fa-solid fa-shield-halved"></i> Auditoría y notificaciones en cada acción</div>
+            </div>
+        </div>
+        <div class="auth-foot">
+            <a href="@Url.Action("Index", "Home")">Inicio</a>
+            <a href="@Url.Action("Privacy", "Home")">Privacidad</a>
+            <span>© @DateTime.Now.Year BankOs</span>
+        </div>
+    </div>
+
+    <div class="auth-form-wrap">
+        <div class="auth-card">
+            <div class="eyebrow">Panel de administración</div>
+            <h2>Iniciar sesión</h2>
+            <p class="lead">Selecciona tu banco e ingresa tus credenciales de administrador.</p>
+
+            @if (ViewBag.Error != null)
+            {
+                <div class="alert alert-error"><i class="fa-solid fa-circle-exclamation"></i><span>@ViewBag.Error</span></div>
+            }
+
+            <form method="post" action="@Url.Action("Login", "Auth")">
+                @Html.AntiForgeryToken()
+                <div class="form-group">
+                    <label class="form-label" asp-for="TenantId">Banco</label>
+                    <select class="form-input" asp-for="TenantId" required>
+                        <option value="">— Selecciona tu banco —</option>
+                        @foreach (var b in banks)
+                        {
+                            <option value="@b.Id" selected="@(Model.TenantId == b.Id)">@b.Name</option>
+                        }
+                    </select>
+                    @if (banks.Count == 0)
+                    {
+                        <div class="form-hint">No se pudo cargar la lista de bancos. Verifica la conexión con la API.</div>
+                    }
+                </div>
+                <div class="form-group">
+                    <label class="form-label" asp-for="Email">Correo</label>
+                    <input class="form-input" type="email" asp-for="Email" placeholder="admin@tubanco.com" required autofocus />
+                </div>
+                <div class="form-group" style="margin-bottom:22px;">
+                    <label class="form-label" asp-for="Password">Contraseña</label>
+                    <input class="form-input" type="password" asp-for="Password" placeholder="••••••••" required />
+                </div>
+                <button type="submit" class="btn btn-brand btn-lg btn-block">
+                    <i class="fa-solid fa-arrow-right-to-bracket"></i> Entrar al panel
+                </button>
+            </form>
+
+            <div class="auth-other">
+                ¿Eres cliente y necesitas un certificado?
+                <a href="@Url.Action("Request", "Certificate")">Solicítalo aquí</a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

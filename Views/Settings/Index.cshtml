@@ -1,0 +1,102 @@
+@model BankAdmin.Models.ConfigViewModel
+@{
+    ViewBag.Title = "Configuración";
+    var cfg = ViewBag.Config as TenantConfigModel ?? new TenantConfigModel();
+}
+
+<main class="main" style="max-width:880px;">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow">@ViewBag.TenantName</div>
+            <h1 class="page-title">Configuración</h1>
+            <p class="page-subtitle">Parámetros financieros de tu banco y tu cuenta.</p>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success"><i class="fa-solid fa-circle-check"></i><span>@TempData["Success"]</span></div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-error"><i class="fa-solid fa-circle-exclamation"></i><span>@TempData["Error"]</span></div>
+    }
+
+    <div class="grid-2" style="align-items:start;">
+        <!-- Financial config -->
+        <div class="card">
+            <div class="card-header"><span class="card-title"><i class="fa-solid fa-sliders" style="color:var(--blue);"></i> Parámetros financieros</span></div>
+            <div class="card-body">
+                <form method="post" action="@Url.Action("SaveConfig")">
+                    @Html.AntiForgeryToken()
+                    <div class="form-group">
+                        <label class="form-label" asp-for="MaxTransactionAmount">Monto máximo por transacción</label>
+                        <input class="form-input" type="number" step="0.01" min="100" asp-for="MaxTransactionAmount" required />
+                        <div class="form-hint">Moneda base del banco: <b>@cfg.Currency</b></div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label class="form-label" asp-for="TransferFeeType">Tipo de comisión</label>
+                            <select class="form-input" asp-for="TransferFeeType">
+                                <option value="percentage" selected="@(Model.TransferFeeType == "percentage")">Porcentaje (%)</option>
+                                <option value="fixed" selected="@(Model.TransferFeeType == "fixed")">Fija</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" asp-for="TransferFeeValue">Valor de comisión</label>
+                            <input class="form-input" type="number" step="0.01" min="0" asp-for="TransferFeeValue" required />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" asp-for="WebhookUrl">Webhook URL (opcional)</label>
+                        <input class="form-input" type="url" asp-for="WebhookUrl" placeholder="https://tu-servicio.com/webhook" />
+                    </div>
+
+                    @if (cfg.ExchangeRates != null && cfg.ExchangeRates.Count > 0)
+                    {
+                        <div style="margin:4px 0 16px;padding:12px 14px;background:var(--s-50);border:1px solid var(--s-200);border-radius:12px;">
+                            <div style="font-size:11px;font-weight:700;color:var(--s-500);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Tasas de cambio</div>
+                            <div style="display:flex;gap:14px;flex-wrap:wrap;">
+                                @foreach (var rate in cfg.ExchangeRates)
+                                {
+                                    <span class="chip">@rate.Key: @rate.Value.ToString("N2")</span>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <button type="submit" class="btn btn-brand btn-block"><i class="fa-solid fa-floppy-disk"></i> Guardar configuración</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Change password -->
+        <div class="card">
+            <div class="card-header"><span class="card-title"><i class="fa-solid fa-key" style="color:var(--purple);"></i> Cambiar contraseña</span></div>
+            <div class="card-body">
+                <form method="post" action="@Url.Action("ChangePassword")">
+                    @Html.AntiForgeryToken()
+                    <div class="form-group">
+                        <label class="form-label">Contraseña actual</label>
+                        <input class="form-input" type="password" name="CurrentPassword" required />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Nueva contraseña</label>
+                        <input class="form-input" type="password" name="NewPassword" minlength="8" placeholder="Mínimo 8 caracteres" required />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Confirmar nueva contraseña</label>
+                        <input class="form-input" type="password" name="ConfirmPassword" minlength="8" required />
+                    </div>
+                    <button type="submit" class="btn btn-secondary btn-block"><i class="fa-solid fa-check"></i> Actualizar contraseña</button>
+                </form>
+
+                <div style="margin-top:18px;padding-top:18px;border-top:1px solid var(--s-100);">
+                    <div style="font-size:12px;color:var(--s-500);">Sesión iniciada como</div>
+                    <div style="font-weight:600;color:var(--ink);margin-top:2px;">@ViewBag.UserName</div>
+                    <div style="font-size:12.5px;color:var(--s-400);">@ViewBag.UserEmail</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>

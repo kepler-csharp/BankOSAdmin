@@ -1,0 +1,83 @@
+@model List<BankAdmin.Models.UserModel>
+@{
+    ViewBag.Title = "Clientes";
+}
+
+<main class="main">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow">@ViewBag.TenantName</div>
+            <h1 class="page-title">Clientes y usuarios</h1>
+            <p class="page-subtitle">@Model.Count usuario@(Model.Count == 1 ? "" : "s") registrado@(Model.Count == 1 ? "" : "s").</p>
+        </div>
+        <a class="btn btn-brand" href="@Url.Action("Create")"><i class="fa-solid fa-user-plus"></i> Nuevo usuario</a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success"><i class="fa-solid fa-circle-check"></i><span>@TempData["Success"]</span></div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-error"><i class="fa-solid fa-circle-exclamation"></i><span>@TempData["Error"]</span></div>
+    }
+
+    <div class="card">
+        <div class="card-body" style="padding:0;">
+            @if (Model.Count == 0)
+            {
+                <div class="empty"><div class="empty-title">Aún no hay usuarios</div><div class="empty-text">Crea el primer cliente o administrador de tu banco.</div></div>
+            }
+            else
+            {
+                <div class="table-wrap" style="border:none;">
+                    <table class="data">
+                        <thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Cuentas</th><th>Estado</th><th style="text-align:right;">Acciones</th></tr></thead>
+                        <tbody>
+                        @foreach (var u in Model)
+                        {
+                            <tr>
+                                <td style="font-weight:600;color:var(--ink);">@u.Name</td>
+                                <td>@u.Email</td>
+                                <td>@if (u.IsAdmin) { <span class="chip" style="color:var(--purple);"><i class="fa-solid fa-user-shield"></i> Admin</span> } else { <span class="chip"><i class="fa-solid fa-user"></i> Cliente</span> }</td>
+                                <td>@u.AccountsCount</td>
+                                <td>@if (u.IsActive) { <span class="badge badge-active">Activo</span> } else { <span class="badge badge-inactive">Inactivo</span> }</td>
+                                <td>
+                                    <div style="display:flex;gap:6px;justify-content:flex-end;">
+                                        <a class="btn btn-secondary btn-sm" href="@Url.Action("Edit", new { id = u.Id })" title="Editar"><i class="fa-solid fa-pen"></i></a>
+                                        <a class="btn btn-secondary btn-sm" href="@Url.Action("Certificate", new { id = u.Id })" title="Certificado PDF"><i class="fa-solid fa-file-arrow-down"></i></a>
+                                        @if (u.IsActive)
+                                        {
+                                            <button type="button" class="btn btn-warning btn-sm" title="Desactivar"
+                                                    onclick="openConfirm(this)"
+                                                    data-action="@Url.Action("ToggleStatus")" data-id="@u.Id" data-name="@u.Name" data-email="@u.Email"
+                                                    data-icon="warn" data-confirm-label="Desactivar" data-confirm-class="btn-warning"
+                                                    data-title="Desactivar usuario"
+                                                    data-message="El usuario <b>@u.Name</b> no podrá iniciar sesión. Se le notificará por correo. Puedes reactivarlo cuando quieras.">
+                                                <i class="fa-solid fa-pause"></i>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" class="btn btn-success btn-sm" title="Reactivar"
+                                                    onclick="openConfirm(this)"
+                                                    data-action="@Url.Action("ToggleStatus")" data-id="@u.Id" data-name="@u.Name" data-email="@u.Email"
+                                                    data-icon="ok" data-confirm-label="Reactivar" data-confirm-class="btn-success"
+                                                    data-title="Reactivar usuario"
+                                                    data-message="El usuario <b>@u.Name</b> podrá volver a iniciar sesión. Se le notificará por correo.">
+                                                <i class="fa-solid fa-play"></i>
+                                            </button>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</main>
+
+@await Html.PartialAsync("_ConfirmModal")

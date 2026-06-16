@@ -1,0 +1,114 @@
+@model BankAdmin.Models.CertificateRequestViewModel
+@{
+    Layout = null;
+    var banks = ViewBag.Banks as List<BankModel> ?? new List<BankModel>();
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Solicitar certificado · BankOs</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="~/img/favicon-32.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <style>
+        body { margin: 0; }
+        .cert { display: grid; grid-template-columns: 1fr 1.05fr; min-height: 100vh; }
+        .cert-form-wrap { display: flex; align-items: center; justify-content: center; padding: 40px; background: var(--s-50); }
+        .cert-card { width: 100%; max-width: 420px; }
+        .cert-card .eyebrow { color: var(--cyan); font-weight: 700; font-size: 12px; letter-spacing: 1.4px; text-transform: uppercase; }
+        .cert-card h2 { font-family: var(--display); font-size: 27px; font-weight: 800; color: var(--ink); margin: 8px 0 6px; }
+        .cert-card .lead { color: var(--s-500); font-size: 14px; margin-bottom: 24px; }
+        .cert-art { position: relative; overflow: hidden; background: linear-gradient(150deg,#06203a 0%,#0c1f6e 45%,#00557a 100%); color: #fff; padding: 56px 60px; display: flex; flex-direction: column; justify-content: space-between; }
+        .cert-art::before { content: ""; position: absolute; width: 560px; height: 560px; right: -200px; top: -160px; border-radius: 50%; background: radial-gradient(circle, rgba(0,168,232,.45), transparent 62%); }
+        .cert-art::after { content: ""; position: absolute; width: 480px; height: 480px; left: -180px; bottom: -200px; border-radius: 50%; background: radial-gradient(circle, rgba(34,197,94,.34), transparent 62%); }
+        .cert-art > * { position: relative; z-index: 1; }
+        .cert-logo { display: flex; align-items: center; gap: 13px; }
+        .cert-logo img { height: 44px; width: 44px; object-fit: contain; }
+        .cert-logo .wm { font-family: var(--display); font-weight: 800; font-size: 26px; }
+        .cert-logo .wm span:nth-child(1){ color:#fff; } .cert-logo .wm span:nth-child(2){ color:#c084fc; } .cert-logo .wm span:nth-child(3){ color:#4ade80; }
+        .cert-art h1 { font-family: var(--display); font-size: 36px; line-height: 1.12; font-weight: 800; margin: 0 0 16px; letter-spacing: -1px; }
+        .cert-art p { color: #b9d4ec; font-size: 15.5px; line-height: 1.6; max-width: 420px; }
+        .cert-steps { display: flex; flex-direction: column; gap: 13px; margin-top: 26px; }
+        .cert-step { display: flex; align-items: center; gap: 13px; color: #d7ecf8; font-size: 14px; }
+        .cert-step i { width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.16); }
+        .cert-foot { color: #7fa9c8; font-size: 12.5px; }
+        .cert-foot a { color: #b9d4ec; text-decoration: none; }
+        .cert-secure { display: flex; gap: 10px; align-items: flex-start; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 12px; padding: 13px 15px; margin-bottom: 22px; color: #065f46; font-size: 13px; line-height: 1.5; }
+        @@media (max-width: 900px) { .cert { grid-template-columns: 1fr; } .cert-art { display: none; } }
+    </style>
+</head>
+<body>
+<div class="cert">
+    <div class="cert-form-wrap">
+        <div class="cert-card">
+            <a href="@Url.Action("Index", "Home")" style="color:var(--s-400);text-decoration:none;font-size:13px;"><i class="fa-solid fa-arrow-left"></i> Inicio</a>
+            <div class="eyebrow" style="margin-top:18px;">Autoservicio seguro</div>
+            <h2>Solicitar certificado</h2>
+            <p class="lead">Verifica tu identidad para generar y recibir tu certificado bancario.</p>
+
+            <div class="cert-secure">
+                <i class="fa-solid fa-lock" style="margin-top:2px;"></i>
+                <span>Por seguridad, solo tú puedes solicitar tu certificado: necesitas tus credenciales y lo enviamos únicamente a tu correo registrado.</span>
+            </div>
+
+            @if (ViewBag.Error != null)
+            {
+                <div class="alert alert-error"><i class="fa-solid fa-circle-exclamation"></i><span>@ViewBag.Error</span></div>
+            }
+
+            <form method="post" action="@Url.Action("Request", "Certificate")">
+                @Html.AntiForgeryToken()
+                <div class="form-group">
+                    <label class="form-label" asp-for="TenantId">Banco</label>
+                    <select class="form-input" asp-for="TenantId" required>
+                        <option value="">— Selecciona tu banco —</option>
+                        @foreach (var b in banks)
+                        {
+                            <option value="@b.Id" selected="@(Model.TenantId == b.Id)">@b.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" asp-for="Email">Correo</label>
+                    <input class="form-input" type="email" asp-for="Email" placeholder="tucorreo@correo.com" required autofocus />
+                </div>
+                <div class="form-group" style="margin-bottom:22px;">
+                    <label class="form-label" asp-for="Password">Contraseña</label>
+                    <input class="form-input" type="password" asp-for="Password" placeholder="••••••••" required />
+                </div>
+                <button type="submit" class="btn btn-brand btn-lg btn-block">
+                    <i class="fa-solid fa-file-arrow-down"></i> Generar y descargar certificado
+                </button>
+                <p style="color:var(--s-400);font-size:12px;text-align:center;margin-top:14px;">
+                    El certificado se descargará y también llegará a tu correo registrado.
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <div class="cert-art">
+        <div class="cert-logo">
+            <img src="~/img/logo.png" alt="BankOs" />
+            <span class="wm"><span>Bank</span><span>O</span><span>s</span></span>
+        </div>
+        <div>
+            <h1>Tu certificado bancario,<br />cuando lo necesites.</h1>
+            <p>Genera un documento con tus cuentas y saldos, válido al momento de la emisión, de forma totalmente segura.</p>
+            <div class="cert-steps">
+                <div class="cert-step"><i class="fa-solid fa-building-columns"></i> Elige tu banco</div>
+                <div class="cert-step"><i class="fa-solid fa-user-lock"></i> Verifica tu identidad</div>
+                <div class="cert-step"><i class="fa-solid fa-file-pdf"></i> Descarga tu certificado en PDF</div>
+                <div class="cert-step"><i class="fa-solid fa-envelope-circle-check"></i> Recíbelo también por correo</div>
+            </div>
+        </div>
+        <div class="cert-foot">
+            <a href="@Url.Action("Privacy", "Home")">Política de privacidad</a> · © @DateTime.Now.Year BankOs
+        </div>
+    </div>
+</div>
+</body>
+</html>

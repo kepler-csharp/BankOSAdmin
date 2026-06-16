@@ -1,0 +1,63 @@
+@{
+    var authed = !string.IsNullOrEmpty(Context.Session.GetString("Token"));
+    string Active(string c, string a) =>
+        string.Equals(ViewContext.RouteData.Values["controller"]?.ToString(), c, StringComparison.OrdinalIgnoreCase)
+        && (a == "" || string.Equals(ViewContext.RouteData.Values["action"]?.ToString(), a, StringComparison.OrdinalIgnoreCase))
+        ? "active" : "";
+    string ActiveC(string c) =>
+        string.Equals(ViewContext.RouteData.Values["controller"]?.ToString(), c, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@(ViewBag.Title != null ? ViewBag.Title + " · BankOs" : "BankOs · Administración")</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="~/img/favicon-32.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="~/img/favicon-180.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @await RenderSectionAsync("Head", required: false)
+</head>
+<body>
+@if (authed)
+{
+    <nav class="nav">
+        <div class="nav-inner">
+            <a class="nav-brand" href="@Url.Action("Index", "Dashboard")">
+                <img src="~/img/logo.png" alt="BankOs" class="nav-logo" />
+                <span class="wordmark name">Bank<span class="o">O</span><span class="s">s</span></span>
+                <span class="nav-badge">ADMIN</span>
+            </a>
+            <div class="nav-links">
+                <a class="nav-link @Active("Dashboard","")" href="@Url.Action("Index", "Dashboard")"><i class="fa-solid fa-gauge-high"></i> Resumen</a>
+                <a class="nav-link @ActiveC("Clients")" href="@Url.Action("Index", "Clients")"><i class="fa-solid fa-users"></i> Clientes</a>
+                <a class="nav-link @ActiveC("Accounts")" href="@Url.Action("Index", "Accounts")"><i class="fa-solid fa-wallet"></i> Cuentas</a>
+                <a class="nav-link @ActiveC("Transactions")" href="@Url.Action("Index", "Transactions")"><i class="fa-solid fa-right-left"></i> Transacciones</a>
+                <a class="nav-link @Active("Support","Pqrs")" href="@Url.Action("Pqrs", "Support")"><i class="fa-solid fa-headset"></i> PQRS</a>
+                <a class="nav-link @Active("Support","Audit")" href="@Url.Action("Audit", "Support")"><i class="fa-solid fa-clipboard-list"></i> Auditoría</a>
+                <a class="nav-link @ActiveC("Chat")" href="@Url.Action("Index", "Chat")"><i class="fa-solid fa-robot"></i> Asistente</a>
+                <a class="nav-link @ActiveC("Settings")" href="@Url.Action("Index", "Settings")"><i class="fa-solid fa-gear"></i> Config</a>
+            </div>
+            <div class="nav-user">
+                <div class="nav-user-meta">
+                    <span class="nav-user-name">@ViewBag.UserName</span>
+                    <span class="nav-user-bank">@ViewBag.TenantName</span>
+                </div>
+                <form method="post" action="@Url.Action("Logout", "Auth")" style="display:inline;">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-ghost btn-sm" title="Cerrar sesión"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
+                </form>
+            </div>
+        </div>
+    </nav>
+}
+
+@RenderBody()
+
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

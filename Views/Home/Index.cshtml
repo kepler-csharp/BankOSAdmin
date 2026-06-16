@@ -1,0 +1,127 @@
+@{
+    Layout = null;
+    var bankCount = ViewBag.BankCount as int? ?? 0;
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BankOs · Administración de tu banco</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="~/img/favicon-32.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <style>
+        body { margin: 0; background: #fff; }
+        .lp-nav { position: sticky; top: 0; z-index: 40; background: rgba(10,18,48,.85); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,.07); }
+        .lp-nav-in { max-width: 1140px; margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; }
+        .lp-logo { display: flex; align-items: center; gap: 11px; text-decoration: none; }
+        .lp-logo img { height: 36px; width: 36px; object-fit: contain; }
+        .lp-logo .wm { font-family: var(--display); font-weight: 800; font-size: 21px; }
+        .lp-logo .wm span:nth-child(1){ color:#fff; } .lp-logo .wm span:nth-child(2){ color:#c084fc; } .lp-logo .wm span:nth-child(3){ color:#4ade80; }
+        .lp-hero { background: linear-gradient(160deg,#0a1652 0%,#0c1f6e 42%,#221a8c 74%,#3a1d9e 100%); color: #fff; position: relative; overflow: hidden; }
+        .lp-hero::before { content: ""; position: absolute; width: 700px; height: 700px; right: -240px; top: -260px; border-radius: 50%; background: radial-gradient(circle, rgba(124,18,253,.4), transparent 60%); }
+        .lp-hero::after { content: ""; position: absolute; width: 600px; height: 600px; left: -260px; bottom: -320px; border-radius: 50%; background: radial-gradient(circle, rgba(0,168,232,.34), transparent 62%); }
+        .lp-hero-in { max-width: 1140px; margin: 0 auto; padding: 90px 24px 100px; position: relative; z-index: 1; text-align: center; }
+        .lp-pill { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18); border-radius: 50px; padding: 7px 16px; font-size: 13px; color: #d7e0ff; margin-bottom: 26px; }
+        .lp-hero h1 { font-family: var(--display); font-size: 52px; line-height: 1.07; font-weight: 800; letter-spacing: -1.5px; margin: 0 0 22px; }
+        .lp-grad { background: linear-gradient(90deg,#c084fc,#7c9bff 40%,#38bdf8 70%,#4ade80); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+        .lp-hero p { color: #b9c6f5; font-size: 19px; line-height: 1.6; max-width: 620px; margin: 0 auto 36px; }
+        .lp-cta { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+        .lp-stat { margin-top: 54px; color: #9bb4ff; font-size: 14px; }
+        .lp-stat b { color: #fff; font-size: 17px; }
+        .btn-white { background: #fff; color: var(--navy); font-weight: 700; }
+        .btn-white:hover { background: #eef1f8; }
+        .btn-outline-w { background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,.4); font-weight: 600; }
+        .btn-outline-w:hover { background: rgba(255,255,255,.1); }
+        .lp-sec { max-width: 1140px; margin: 0 auto; padding: 84px 24px; }
+        .lp-sec h2 { font-family: var(--display); font-size: 34px; font-weight: 800; text-align: center; color: var(--ink); letter-spacing: -.6px; margin: 0 0 12px; }
+        .lp-sec .sub { text-align: center; color: var(--s-500); font-size: 16px; max-width: 560px; margin: 0 auto 52px; }
+        .lp-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 22px; }
+        .lp-card { background: #fff; border: 1px solid var(--s-200); border-radius: var(--radius); padding: 28px; transition: all .18s; }
+        .lp-card:hover { box-shadow: 0 16px 44px rgba(12,31,110,.1); transform: translateY(-3px); border-color: transparent; }
+        .lp-ic { width: 50px; height: 50px; border-radius: 14px; display: grid; place-items: center; color: #fff; font-size: 20px; margin-bottom: 18px; }
+        .lp-card h3 { font-family: var(--display); font-size: 18px; font-weight: 700; color: var(--ink); margin: 0 0 8px; }
+        .lp-card p { color: var(--s-500); font-size: 14px; line-height: 1.6; margin: 0; }
+        .lp-steps { background: var(--s-50); border-top: 1px solid var(--s-200); border-bottom: 1px solid var(--s-200); }
+        .lp-steps-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 20px; counter-reset: s; }
+        .lp-step { text-align: center; }
+        .lp-step .n { width: 46px; height: 46px; margin: 0 auto 16px; border-radius: 50%; background: var(--rail); color: #fff; display: grid; place-items: center; font-family: var(--display); font-weight: 800; font-size: 18px; }
+        .lp-step h4 { font-family: var(--display); font-size: 16px; color: var(--ink); margin: 0 0 6px; }
+        .lp-step p { color: var(--s-500); font-size: 13.5px; line-height: 1.55; margin: 0; }
+        .lp-foot { background: #0a1230; color: #8ea2d8; }
+        .lp-foot-in { max-width: 1140px; margin: 0 auto; padding: 40px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+        .lp-foot a { color: #b9c6f5; text-decoration: none; margin-left: 20px; }
+        @@media (max-width: 880px) { .lp-grid, .lp-steps-grid { grid-template-columns: 1fr; } .lp-hero h1 { font-size: 38px; } }
+    </style>
+</head>
+<body>
+    <nav class="lp-nav">
+        <div class="lp-nav-in">
+            <a class="lp-logo" href="/"><img src="~/img/logo.png" alt="BankOs" /><span class="wm"><span>Bank</span><span>O</span><span>s</span></span></a>
+            <div style="display:flex;gap:10px;">
+                <a class="btn btn-outline-w btn-sm" href="@Url.Action("Request", "Certificate")">Solicitar certificado</a>
+                <a class="btn btn-white btn-sm" href="@Url.Action("Login", "Auth")">Entrar</a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="lp-hero">
+        <div class="lp-hero-in">
+            <span class="lp-pill"><i class="fa-solid fa-shield-halved"></i> Panel de administración bancaria</span>
+            <h1>El control total de tu banco,<br /><span class="lp-grad">simple y seguro.</span></h1>
+            <p>Administra clientes, cuentas, transacciones, soporte y configuración de tu entidad financiera desde un solo lugar, con notificaciones automáticas y auditoría completa.</p>
+            <div class="lp-cta">
+                <a class="btn btn-white btn-lg" href="@Url.Action("Login", "Auth")"><i class="fa-solid fa-arrow-right-to-bracket"></i> Acceso administradores</a>
+                <a class="btn btn-outline-w btn-lg" href="@Url.Action("Request", "Certificate")"><i class="fa-solid fa-file-arrow-down"></i> Solicitar certificado</a>
+            </div>
+            @if (bankCount > 0)
+            {
+                <div class="lp-stat"><b>@bankCount</b> banco@(bankCount == 1 ? "" : "s") operando sobre la infraestructura BankOs</div>
+            }
+        </div>
+    </header>
+
+    <section class="lp-sec">
+        <h2>Todo lo que un administrador necesita</h2>
+        <p class="sub">Funcionalidades completas para operar tu banco con confianza.</p>
+        <div class="lp-grid">
+            <div class="lp-card"><div class="lp-ic" style="background:var(--blue);"><i class="fa-solid fa-users"></i></div><h3>Clientes</h3><p>Crea, edita y gestiona el estado de tus clientes. Cada cambio se notifica automáticamente por correo.</p></div>
+            <div class="lp-card"><div class="lp-ic" style="background:var(--green);"><i class="fa-solid fa-wallet"></i></div><h3>Cuentas</h3><p>Administra cuentas y saldos con la máxima prudencia: confirmaciones reforzadas para cuentas con dinero.</p></div>
+            <div class="lp-card"><div class="lp-ic" style="background:var(--purple);"><i class="fa-solid fa-right-left"></i></div><h3>Transacciones</h3><p>Realiza depósitos y transferencias, y consulta el historial completo con filtros y trazabilidad.</p></div>
+            <div class="lp-card"><div class="lp-ic" style="background:var(--cyan);"><i class="fa-solid fa-headset"></i></div><h3>PQRS</h3><p>Responde peticiones, quejas y reclamos de tus clientes; ellos reciben tu respuesta por correo.</p></div>
+            <div class="lp-card"><div class="lp-ic" style="background:#6366f1;"><i class="fa-solid fa-robot"></i></div><h3>Asistente con IA</h3><p>Haz preguntas en lenguaje natural y obtén análisis de cuentas, transacciones y clientes al instante.</p></div>
+            <div class="lp-card"><div class="lp-ic" style="background:#0ea5e9;"><i class="fa-solid fa-file-shield"></i></div><h3>Certificados PDF</h3><p>Genera certificados bancarios para tus clientes, o deja que ellos los soliciten de forma segura.</p></div>
+        </div>
+    </section>
+
+    <section class="lp-steps">
+        <div class="lp-sec">
+            <h2>Solicitar un certificado es seguro</h2>
+            <p class="sub">Tus clientes obtienen su certificado en cuatro pasos, validando su identidad.</p>
+            <div class="lp-steps-grid">
+                <div class="lp-step"><div class="n">1</div><h4>Elige el banco</h4><p>Selecciona la entidad donde tienes tus cuentas.</p></div>
+                <div class="lp-step"><div class="n">2</div><h4>Verifica tu identidad</h4><p>Ingresa con tu correo y contraseña de cliente.</p></div>
+                <div class="lp-step"><div class="n">3</div><h4>Generamos el PDF</h4><p>Creamos el certificado con tus cuentas y saldos.</p></div>
+                <div class="lp-step"><div class="n">4</div><h4>Descarga y correo</h4><p>Lo descargas al instante y llega a tu correo.</p></div>
+            </div>
+            <div style="text-align:center;margin-top:44px;">
+                <a class="btn btn-brand btn-lg" href="@Url.Action("Request", "Certificate")"><i class="fa-solid fa-file-arrow-down"></i> Solicitar mi certificado</a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="lp-foot">
+        <div class="lp-foot-in">
+            <div>© @DateTime.Now.Year BankOs — Infraestructura financiera multi-tenant.</div>
+            <div>
+                <a href="@Url.Action("Login", "Auth")">Administradores</a>
+                <a href="@Url.Action("Request", "Certificate")">Certificados</a>
+                <a href="@Url.Action("Privacy", "Home")">Política de privacidad</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

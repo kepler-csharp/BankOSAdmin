@@ -1,0 +1,50 @@
+@model BankAdmin.Models.TransactionModel
+@{
+    ViewBag.Title = "Detalle de transacción";
+    var acc = ViewBag.AccountNumbers as Dictionary<string, string> ?? new();
+    string AccNo(string? id) => id != null && acc.TryGetValue(id, out var n) ? n : (id ?? "—");
+    string TypeLabel(string t) => t switch { "deposit" => "Depósito", "withdrawal" => "Retiro", "transfer" => "Transferencia", _ => t };
+}
+
+<main class="main" style="max-width:720px;">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow"><a href="@Url.Action("Index")" style="color:var(--s-400);text-decoration:none;">Transacciones</a> · Detalle</div>
+            <h1 class="page-title">@TypeLabel(Model.Type)</h1>
+            <p class="page-subtitle">@(Model.CreatedAt?.ToString("dd 'de' MMMM 'de' yyyy, HH:mm") ?? "")</p>
+        </div>
+        <div>
+            @if (Model.Status == "success") { <span class="badge badge-active">Exitosa</span> } else if (Model.Status == "failed") { <span class="badge badge-inactive">Fallida</span> } else { <span class="chip">@Model.Status</span> }
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div style="text-align:center;padding:8px 0 18px;border-bottom:1px solid var(--s-100);margin-bottom:8px;">
+                <div style="font-family:var(--display);font-size:38px;font-weight:800;color:var(--ink);">@Model.Amount.ToString("N2") <span style="font-size:18px;color:var(--s-400);">@Model.Currency</span></div>
+            </div>
+            <table class="kv-table">
+                <tr><td>ID de transacción</td><td style="font-family:var(--mono);font-size:12px;">@Model.Id</td></tr>
+                <tr><td>Tipo</td><td>@TypeLabel(Model.Type)</td></tr>
+                <tr><td>Cuenta origen</td><td style="font-family:var(--mono);">@AccNo(Model.AccountId)</td></tr>
+                @if (Model.DestinationAccountId != null)
+                {
+                    <tr><td>Cuenta destino</td><td style="font-family:var(--mono);">@AccNo(Model.DestinationAccountId)</td></tr>
+                }
+                <tr><td>Comisión</td><td>@Model.Fee.ToString("N2") @(string.IsNullOrEmpty(Model.FeeType) ? "" : $"({Model.FeeType})")</td></tr>
+                @if (Model.ConvertedAmount.HasValue)
+                {
+                    <tr><td>Monto convertido</td><td>@Model.ConvertedAmount.Value.ToString("N2") @Model.DestinationCurrency</td></tr>
+                    <tr><td>Tasa de cambio</td><td>@(Model.ExchangeRate?.ToString("N4") ?? "—")</td></tr>
+                }
+                <tr><td>Saldo después</td><td>@Model.BalanceAfter.ToString("N2")</td></tr>
+                <tr><td>Descripción</td><td>@(string.IsNullOrEmpty(Model.Description) ? "—" : Model.Description)</td></tr>
+                <tr><td>Fecha</td><td>@(Model.CreatedAt?.ToString("dd/MM/yyyy HH:mm:ss") ?? "—")</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <div style="margin-top:18px;">
+        <a class="btn btn-secondary" href="@Url.Action("Index")"><i class="fa-solid fa-arrow-left"></i> Volver</a>
+    </div>
+</main>

@@ -1,0 +1,60 @@
+@model BankAdmin.Models.CreateClientViewModel
+@{
+    ViewBag.Title = "Nuevo usuario";
+}
+
+<main class="main" style="max-width:760px;">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow"><a href="@Url.Action("Index")" style="color:var(--s-400);text-decoration:none;">Clientes</a> · Nuevo</div>
+            <h1 class="page-title">Crear usuario</h1>
+            <p class="page-subtitle">Se notificará al usuario por correo con sus credenciales.</p>
+        </div>
+    </div>
+
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert alert-error"><i class="fa-solid fa-circle-exclamation"></i><span>@ViewBag.Error</span></div>
+    }
+
+    <form method="post" action="@Url.Action("Create")">
+        @Html.AntiForgeryToken()
+        <div class="card">
+            <div class="card-body">
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label" asp-for="Name">Nombre completo</label>
+                        <input class="form-input" asp-for="Name" placeholder="María García" required />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" asp-for="Email">Correo electrónico</label>
+                        <input class="form-input" type="email" asp-for="Email" placeholder="maria@correo.com" required />
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label" asp-for="Password">Contraseña inicial</label>
+                        <input class="form-input" type="password" asp-for="Password" minlength="8" placeholder="Mínimo 8 caracteres" required />
+                        <div class="form-hint">Se enviará al usuario en el correo de bienvenida.</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" asp-for="Role">Rol</label>
+                        <select class="form-input" asp-for="Role">
+                            <option value="cliente">Cliente</option>
+                            <option value="administrador">Administrador</option>
+                        </select>
+                        <div class="form-hint">Los administradores pueden gestionar el banco.</div>
+                    </div>
+                </div>
+                <div class="alert alert-info" style="margin:6px 0 0;">
+                    <i class="fa-solid fa-envelope-circle-check"></i>
+                    <span>Al crear el usuario se le enviará automáticamente un correo de bienvenida con sus credenciales de acceso.</span>
+                </div>
+            </div>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px;">
+            <a class="btn btn-secondary" href="@Url.Action("Index")">Cancelar</a>
+            <button type="submit" class="btn btn-brand btn-lg"><i class="fa-solid fa-user-plus"></i> Crear usuario</button>
+        </div>
+    </form>
+</main>

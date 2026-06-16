@@ -1,0 +1,61 @@
+@model BankAdmin.Models.CreateAccountViewModel
+@{
+    ViewBag.Title = "Nueva cuenta";
+    var clients = ViewBag.Clients as List<UserModel> ?? new List<UserModel>();
+}
+
+<main class="main" style="max-width:760px;">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow"><a href="@Url.Action("Index")" style="color:var(--s-400);text-decoration:none;">Cuentas</a> · Nueva</div>
+            <h1 class="page-title">Crear cuenta bancaria</h1>
+            <p class="page-subtitle">Se notificará al titular por correo.</p>
+        </div>
+    </div>
+
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert alert-error"><i class="fa-solid fa-circle-exclamation"></i><span>@ViewBag.Error</span></div>
+    }
+
+    <form method="post" action="@Url.Action("Create")">
+        @Html.AntiForgeryToken()
+        <div class="card">
+            <div class="card-body">
+                <div class="form-group">
+                    <label class="form-label" asp-for="UserId">Titular de la cuenta</label>
+                    <select class="form-input" asp-for="UserId" required>
+                        <option value="">— Selecciona un cliente —</option>
+                        @foreach (var c in clients)
+                        {
+                            <option value="@c.Id">@c.Name — @c.Email@(c.IsAdmin ? " (admin)" : "")</option>
+                        }
+                    </select>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label" asp-for="AccountNumber">Número de cuenta</label>
+                        <input class="form-input" style="font-family:var(--mono);" asp-for="AccountNumber" placeholder="1234567890" required />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" asp-for="Currency">Moneda</label>
+                        <select class="form-input" asp-for="Currency">
+                            <option value="COP">COP — Peso colombiano</option>
+                            <option value="USD">USD — Dólar</option>
+                            <option value="EUR">EUR — Euro</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label" asp-for="InitialBalance">Saldo inicial</label>
+                    <input class="form-input" type="number" step="0.01" min="0" asp-for="InitialBalance" placeholder="0.00" />
+                    <div class="form-hint">Puedes dejarlo en 0 y depositar después.</div>
+                </div>
+            </div>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px;">
+            <a class="btn btn-secondary" href="@Url.Action("Index")">Cancelar</a>
+            <button type="submit" class="btn btn-brand btn-lg"><i class="fa-solid fa-plus"></i> Crear cuenta</button>
+        </div>
+    </form>
+</main>

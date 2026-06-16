@@ -1,0 +1,98 @@
+@model BankAdmin.Models.DepositViewModel
+@{
+    ViewBag.Title = "Realizar depósito";
+    var accounts = ViewBag.Accounts as List<AccountModel> ?? new List<AccountModel>();
+}
+
+<main class="main" style="max-width:680px;">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow"><a href="@Url.Action("Index")" style="color:var(--s-400);text-decoration:none;">Transacciones</a> · Depósito</div>
+            <h1 class="page-title">Realizar depósito</h1>
+            <p class="page-subtitle">Acredita fondos en una cuenta activa.</p>
+        </div>
+    </div>
+
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert alert-error"><i class="fa-solid fa-circle-exclamation"></i><span>@ViewBag.Error</span></div>
+    }
+
+    <form method="post" action="@Url.Action("Deposit")" id="dep-form">
+        @Html.AntiForgeryToken()
+        <div class="card">
+            <div class="card-body">
+                <div class="form-group">
+                    <label class="form-label" asp-for="AccountId">Cuenta destino</label>
+                    <select class="form-input" asp-for="AccountId" id="dep-account" required>
+                        <option value="">— Selecciona una cuenta —</option>
+                        @foreach (var a in accounts)
+                        {
+                            <option value="@a.Id" data-currency="@a.Currency">@a.AccountNumber — @(a.OwnerName ?? "titular") (@a.Currency)</option>
+                        }
+                    </select>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label" asp-for="Amount">Monto</label>
+                        <input class="form-input" type="number" step="0.01" min="0.01" asp-for="Amount" id="dep-amount" placeholder="0.00" required />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" asp-for="Currency">Moneda</label>
+                        <select class="form-input" asp-for="Currency" id="dep-currency">
+                            <option value="COP">COP</option>
+                            <option value="USD">USD</option>
+                            <option value="EUR">EUR</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label" asp-for="Description">Descripción (opcional)</label>
+                    <input class="form-input" asp-for="Description" placeholder="Ej. depósito en efectivo" />
+                </div>
+            </div>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px;">
+            <a class="btn btn-secondary" href="@Url.Action("Index")">Cancelar</a>
+            <button type="button" class="btn btn-success btn-lg" onclick="confirmDeposit()"><i class="fa-solid fa-arrow-down"></i> Depositar</button>
+        </div>
+    </form>
+</main>
+
+<div class="modal-overlay" id="depModal" onclick="if(event.target===this)closeDep()">
+    <div class="modal" role="dialog" aria-modal="true">
+        <div class="modal-head">
+            <div class="modal-icon ok"><i class="fa-solid fa-arrow-down"></i></div>
+            <h3>Confirmar depósito</h3>
+        </div>
+        <div class="modal-body">
+            Vas a depositar <b id="dep-confirm-amount"></b> en la cuenta <b id="dep-confirm-acc" style="font-family:var(--mono);"></b>.
+            <div class="modal-money"><i class="fa-solid fa-circle-info"></i><span>Esta operación acredita dinero real en la cuenta del cliente.</span></div>
+        </div>
+        <div class="modal-foot">
+            <button type="button" class="btn btn-secondary" onclick="closeDep()">Cancelar</button>
+            <button type="button" class="btn btn-success" onclick="document.getElementById('dep-form').submit()">Sí, depositar</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    function confirmDeposit() {
+        var sel = document.getElementById('dep-account');
+        var amount = document.getElementById('dep-amount').value;
+        var cur = document.getElementById('dep-currency').value;
+        if (!sel.value || !amount || parseFloat(amount) <= 0) { document.getElementById('dep-form').requestSubmit ? document.getElementById('dep-form').requestSubmit() : document.getElementById('dep-form').submit(); return; }
+        document.getElementById('dep-confirm-amount').textContent = parseFloat(amount).toLocaleString('es-CO', { minimumFractionDigits: 2 }) + ' ' + cur;
+        document.getElementById('dep-confirm-acc').textContent = sel.options[sel.selectedIndex].text;
+        document.getElementById('depModal').classList.add('open');
+    }
+    function closeDep() { document.getElementById('depModal').classList.remove('open'); }
+    // keep currency in sync with the selected account
+    document.getElementById('dep-account').addEventListener('change', function () {
+        var c = this.options[this.selectedIndex].dataset.currency;
+        if (c) document.getElementById('dep-currency').value = c;
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeDep(); });
+</script>
+}

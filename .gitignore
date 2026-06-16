@@ -1,0 +1,10 @@
+bin/
+obj/
+out/
+.vs/
+.vscode/
+*.user
+.idea/
+*.log
+appsettings.*.local.json
+appsettings.json

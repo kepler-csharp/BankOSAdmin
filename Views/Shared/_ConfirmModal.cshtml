@@ -1,0 +1,71 @@
+@*
+    Reusable confirmation modal. Trigger from any button with:
+      type="button" onclick="openConfirm(this)"
+      data-action="/Controller/Action"          (form POST target)
+      data-title="..."  data-message="..."
+      data-id="..."  [data-name="..."]  [data-email="..."]
+      [data-money="Saldo: 1.000.000 COP"]        (shows amber money warning)
+      [data-show-reason="1"]                      (shows optional reason textarea -> name='reason')
+      [data-confirm-label="Desactivar"]  [data-confirm-class="btn-danger"]  [data-icon="danger"]
+*@
+<div class="modal-overlay" id="confirmModal" onclick="if(event.target===this)closeConfirm()">
+    <div class="modal" role="dialog" aria-modal="true">
+        <form method="post" id="cm-form">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" id="cm-id" />
+            <input type="hidden" name="name" id="cm-name" />
+            <input type="hidden" name="email" id="cm-email" />
+            <div class="modal-head">
+                <div class="modal-icon danger" id="cm-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                <h3 id="cm-title">¿Confirmar acción?</h3>
+            </div>
+            <div class="modal-body">
+                <span id="cm-message">Esta acción requiere confirmación.</span>
+                <div class="modal-money" id="cm-money" style="display:none;">
+                    <i class="fa-solid fa-sack-dollar"></i><span id="cm-money-text"></span>
+                </div>
+                <div id="cm-reason-wrap" style="display:none;margin-top:14px;">
+                    <label class="form-label">Motivo (opcional)</label>
+                    <input class="form-input" type="text" name="reason" id="cm-reason" placeholder="Ej. solicitud del titular, revisión de seguridad…" />
+                </div>
+            </div>
+            <div class="modal-foot">
+                <button type="button" class="btn btn-secondary" onclick="closeConfirm()">Cancelar</button>
+                <button type="submit" class="btn btn-danger" id="cm-confirm">Confirmar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openConfirm(btn) {
+        var d = btn.dataset;
+        var form = document.getElementById('cm-form');
+        form.action = d.action || '#';
+        document.getElementById('cm-id').value = d.id || '';
+        document.getElementById('cm-name').value = d.name || '';
+        document.getElementById('cm-email').value = d.email || '';
+        document.getElementById('cm-title').textContent = d.title || '¿Confirmar acción?';
+        document.getElementById('cm-message').innerHTML = d.message || 'Esta acción requiere confirmación.';
+
+        var money = document.getElementById('cm-money');
+        if (d.money) { document.getElementById('cm-money-text').innerHTML = d.money; money.style.display = 'flex'; }
+        else { money.style.display = 'none'; }
+
+        var reasonWrap = document.getElementById('cm-reason-wrap');
+        var reason = document.getElementById('cm-reason');
+        if (d.showReason === '1') { reasonWrap.style.display = 'block'; reason.value = ''; }
+        else { reasonWrap.style.display = 'none'; }
+
+        var confirm = document.getElementById('cm-confirm');
+        confirm.textContent = d.confirmLabel || 'Confirmar';
+        confirm.className = 'btn ' + (d.confirmClass || 'btn-danger');
+
+        var icon = document.getElementById('cm-icon');
+        icon.className = 'modal-icon ' + (d.icon || 'danger');
+
+        document.getElementById('confirmModal').classList.add('open');
+    }
+    function closeConfirm() { document.getElementById('confirmModal').classList.remove('open'); }
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeConfirm(); });
+</script>

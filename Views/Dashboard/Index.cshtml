@@ -1,0 +1,119 @@
+@{
+    ViewBag.Title = "Resumen";
+    var s = ViewBag.Stats as DashboardStats ?? new DashboardStats();
+    var recentTx = ViewBag.RecentTx as List<TransactionModel> ?? new();
+    var recentAcc = ViewBag.RecentAccounts as List<AccountModel> ?? new();
+    var clientCount = ViewBag.ClientCount as int? ?? 0;
+    string TypeLabel(string t) => t switch { "deposit" => "Depósito", "withdrawal" => "Retiro", "transfer" => "Transferencia", _ => t };
+    string TypeClass(string t) => t switch { "deposit" => "txt-deposit", "withdrawal" => "txt-withdrawal", "transfer" => "txt-transfer", _ => "" };
+}
+
+<main class="main">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow">@ViewBag.TenantName</div>
+            <h1 class="page-title">Hola, @ViewBag.UserName 👋</h1>
+            <p class="page-subtitle">Este es el estado actual de tu banco.</p>
+        </div>
+        <div style="display:flex;gap:10px;">
+            <a class="btn btn-secondary" href="@Url.Action("Deposit", "Transactions")"><i class="fa-solid fa-plus"></i> Depósito</a>
+            <a class="btn btn-brand" href="@Url.Action("Transfer", "Transactions")"><i class="fa-solid fa-right-left"></i> Transferir</a>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success"><i class="fa-solid fa-circle-check"></i><span>@TempData["Success"]</span></div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-error"><i class="fa-solid fa-circle-exclamation"></i><span>@TempData["Error"]</span></div>
+    }
+
+    <div class="grid-2" style="grid-template-columns: 1.4fr 1fr; align-items:stretch; margin-bottom:30px;">
+        <div class="balance-card">
+            <div class="lbl">Saldo total en cuentas activas</div>
+            <div class="amt">@s.TotalBalance.ToString("N2") <span style="font-size:18px;color:#9bb4ff;">@s.Currency</span></div>
+            <div class="sub">@s.ActiveAccounts cuenta@(s.ActiveAccounts == 1 ? "" : "s") activa@(s.ActiveAccounts == 1 ? "" : "s") · @s.Transactions transacción@(s.Transactions == 1 ? "" : "es") registradas</div>
+        </div>
+        <div class="card" style="display:flex;flex-direction:column;justify-content:center;">
+            <div class="card-body">
+                <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--s-100);"><span style="color:var(--s-500);font-size:13.5px;">Clientes</span><strong>@clientCount</strong></div>
+                <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--s-100);"><span style="color:var(--s-500);font-size:13.5px;">Usuarios totales</span><strong>@s.Users</strong></div>
+                <div style="display:flex;justify-content:space-between;padding:8px 0;"><span style="color:var(--s-500);font-size:13.5px;">Cuentas totales</span><strong>@s.Accounts</strong></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="stat-grid">
+        <div class="stat v-blue"><div class="stat-top"><span class="stat-icon" style="background:#e8efff;color:var(--blue);"><i class="fa-solid fa-users"></i></span></div><div class="stat-value">@s.ActiveUsers</div><div class="stat-label">Usuarios activos</div></div>
+        <div class="stat v-green"><div class="stat-top"><span class="stat-icon" style="background:#e6f7ee;color:var(--green);"><i class="fa-solid fa-wallet"></i></span></div><div class="stat-value">@s.ActiveAccounts</div><div class="stat-label">Cuentas activas</div></div>
+        <div class="stat v-purple"><div class="stat-top"><span class="stat-icon" style="background:#f3e8ff;color:var(--purple);"><i class="fa-solid fa-right-left"></i></span></div><div class="stat-value">@s.Transactions</div><div class="stat-label">Transacciones</div></div>
+        <div class="stat v-slate"><div class="stat-top"><span class="stat-icon" style="background:#eef1f6;color:var(--s-500);"><i class="fa-solid fa-building-columns"></i></span></div><div class="stat-value">@s.Accounts</div><div class="stat-label">Cuentas totales</div></div>
+    </div>
+
+    <div class="grid-2" style="grid-template-columns: 1.3fr 1fr;">
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title"><i class="fa-solid fa-clock-rotate-left" style="color:var(--purple);"></i> Movimientos recientes</span>
+                <a class="btn btn-ghost btn-sm" href="@Url.Action("Index", "Transactions")">Ver todo</a>
+            </div>
+            <div class="card-body" style="padding-top:0;">
+                @if (recentTx.Count == 0)
+                {
+                    <div class="empty"><div class="empty-title">Sin movimientos</div><div class="empty-text">Aún no hay transacciones registradas.</div></div>
+                }
+                else
+                {
+                    <div class="table-wrap">
+                        <table class="data">
+                            <thead><tr><th>Tipo</th><th>Monto</th><th>Estado</th><th>Fecha</th></tr></thead>
+                            <tbody>
+                            @foreach (var t in recentTx)
+                            {
+                                <tr>
+                                    <td><span class="@TypeClass(t.Type)" style="font-weight:600;">@TypeLabel(t.Type)</span></td>
+                                    <td>@t.Amount.ToString("N2") @t.Currency</td>
+                                    <td>@(t.Status == "success" ? "Exitosa" : t.Status == "failed" ? "Fallida" : t.Status)</td>
+                                    <td>@(t.CreatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "—")</td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title"><i class="fa-solid fa-wallet" style="color:var(--green);"></i> Cuentas recientes</span>
+                <a class="btn btn-ghost btn-sm" href="@Url.Action("Index", "Accounts")">Ver todo</a>
+            </div>
+            <div class="card-body" style="padding-top:0;">
+                @if (recentAcc.Count == 0)
+                {
+                    <div class="empty"><div class="empty-title">Sin cuentas</div><div class="empty-text">Crea la primera cuenta de un cliente.</div></div>
+                }
+                else
+                {
+                    <div class="table-wrap">
+                        <table class="data">
+                            <thead><tr><th>Cuenta</th><th>Titular</th><th>Saldo</th></tr></thead>
+                            <tbody>
+                            @foreach (var a in recentAcc)
+                            {
+                                <tr>
+                                    <td style="font-family:var(--mono);font-size:12px;">@a.AccountNumber</td>
+                                    <td>@(a.OwnerName ?? "—")</td>
+                                    <td>@a.Balance.ToString("N2") @a.Currency</td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</main>

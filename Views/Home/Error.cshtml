@@ -1,0 +1,36 @@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Algo salió mal · BankOs</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="~/img/favicon-32.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <style>
+        body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: linear-gradient(150deg,#0a1652,#0c1f6e 60%,#221a8c); }
+        .err { text-align: center; color: #fff; padding: 40px; max-width: 460px; }
+        .err img { height: 56px; margin-bottom: 24px; }
+        .err h1 { font-family: var(--display); font-size: 30px; font-weight: 800; margin: 0 0 12px; }
+        .err p { color: #b9c6f5; font-size: 15px; line-height: 1.6; margin: 0 0 28px; }
+        .err .ref { font-family: var(--mono); font-size: 12px; color: #6f82bb; margin-top: 18px; }
+    </style>
+</head>
+<body>
+    <div class="err">
+        <img src="~/img/logo.png" alt="BankOs" />
+        <h1>Algo salió mal</h1>
+        <p>Ocurrió un error inesperado al procesar tu solicitud. Vuelve a intentarlo; si el problema persiste, contacta a soporte.</p>
+        <a class="btn btn-brand btn-lg" href="@Url.Action("Index", "Dashboard")"><i class="fa-solid fa-house"></i> Volver al panel</a>
+        @if (ViewBag.RequestId != null)
+        {
+            <div class="ref">Ref: @ViewBag.RequestId</div>
+        }
+    </div>
+</body>
+</html>

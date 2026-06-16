@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>BankAdmin</RootNamespace>
+    <AssemblyName>BankAdmin</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Server-side PDF generation (client certificates) so the API is never hit for documents -->
+    <PackageReference Include="QuestPDF" Version="2025.1.0" />
+  </ItemGroup>
+
+</Project>

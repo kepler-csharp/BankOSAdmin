@@ -1,0 +1,60 @@
+@model BankAdmin.Models.EditClientViewModel
+@{
+    ViewBag.Title = "Editar usuario";
+}
+
+<main class="main" style="max-width:760px;">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow"><a href="@Url.Action("Index")" style="color:var(--s-400);text-decoration:none;">Clientes</a> · Editar</div>
+            <h1 class="page-title">Editar usuario</h1>
+            <p class="page-subtitle">Los cambios se notifican al usuario por correo.</p>
+        </div>
+    </div>
+
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert alert-error"><i class="fa-solid fa-circle-exclamation"></i><span>@ViewBag.Error</span></div>
+    }
+
+    <form method="post" action="@Url.Action("Edit")">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        <div class="card">
+            <div class="card-body">
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label" asp-for="Name">Nombre completo</label>
+                        <input class="form-input" asp-for="Name" required />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" asp-for="Email">Correo electrónico</label>
+                        <input class="form-input" type="email" asp-for="Email" required />
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label" asp-for="Role">Rol</label>
+                        <select class="form-input" asp-for="Role">
+                            <option value="cliente" selected="@(Model.Role == "cliente")">Cliente</option>
+                            <option value="administrador" selected="@(Model.Role == "administrador")">Administrador</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" asp-for="NewPassword">Nueva contraseña (opcional)</label>
+                        <input class="form-input" type="password" asp-for="NewPassword" minlength="8" placeholder="Dejar vacío para no cambiar" />
+                        <div class="form-hint">Si la cambias, se notificará al usuario.</div>
+                    </div>
+                </div>
+                <div class="alert alert-info" style="margin:6px 0 0;">
+                    <i class="fa-solid fa-envelope-circle-check"></i>
+                    <span>Cada cambio realizado se notificará automáticamente al usuario por correo, con el detalle de lo modificado.</span>
+                </div>
+            </div>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px;">
+            <a class="btn btn-secondary" href="@Url.Action("Index")">Cancelar</a>
+            <button type="submit" class="btn btn-brand btn-lg"><i class="fa-solid fa-check"></i> Guardar cambios</button>
+        </div>
+    </form>
+</main>

@@ -1,0 +1,121 @@
+@{
+    ViewBag.Title = "Asistente";
+    var suggestions = new[]
+    {
+        "¿Cuántos clientes y cuentas activas hay?",
+        "Resume los saldos totales por moneda",
+        "¿Qué cuentas tienen mayor saldo?",
+        "Analiza las transacciones recientes y detecta algo inusual",
+        "¿Cuántas transferencias fallidas hubo y por qué pudo pasar?"
+    };
+}
+
+<main class="main" style="max-width:920px;">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow">@ViewBag.TenantName</div>
+            <h1 class="page-title"><i class="fa-solid fa-robot" style="color:var(--purple);"></i> Asistente de análisis</h1>
+            <p class="page-subtitle">Haz preguntas sobre tus clientes, cuentas y transacciones.</p>
+        </div>
+    </div>
+
+    @Html.AntiForgeryToken()
+
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title"><span class="ava" style="width:26px;height:26px;border-radius:50%;background:var(--rail-soft);display:grid;place-items:center;color:#fff;font-size:12px;"><i class="fa-solid fa-robot"></i></span> Asistente BankOs</span>
+            <span class="chip" style="color:var(--green);"><i class="fa-solid fa-circle" style="font-size:7px;"></i> En línea</span>
+        </div>
+
+        <div class="chat-msgs" id="chatMsgs">
+            <div class="msg msg-bot">
+                <div class="who"><span class="ava"><i class="fa-solid fa-robot"></i></span><span>Asistente</span></div>
+                Hola @ViewBag.UserName. Soy tu asistente de análisis para <b>@ViewBag.TenantName</b>. Puedo ayudarte con totales, distribuciones de saldos, comportamiento de transacciones y detección de movimientos inusuales. ¿Qué quieres revisar?
+            </div>
+        </div>
+
+        <div style="padding:14px 18px 0;display:flex;gap:8px;flex-wrap:wrap;" id="suggestions">
+            @foreach (var s in suggestions)
+            {
+                <button type="button" class="chip" style="cursor:pointer;border-color:var(--s-300);" onclick="askSuggestion(this)">@s</button>
+            }
+        </div>
+
+        <div class="chat-input-row">
+            <input type="text" class="chat-input" id="chatInput" placeholder="Escribe tu pregunta…" onkeydown="if(event.key==='Enter'){event.preventDefault();sendMsg();}" autocomplete="off" />
+            <button type="button" class="btn btn-brand" id="sendBtn" onclick="sendMsg()"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <p style="color:var(--s-400);font-size:12px;margin-top:14px;text-align:center;">
+        <i class="fa-solid fa-shield-halved"></i> El asistente solo analiza los datos de tu banco y no comparte información con otras entidades.
+    </p>
+</main>
+
+@section Scripts {
+<script>
+    var history = [];
+    var sendUrl = '@Url.Action("Send", "Chat")';
+    var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+    var msgs = document.getElementById('chatMsgs');
+    var input = document.getElementById('chatInput');
+    var sendBtn = document.getElementById('sendBtn');
+
+    function esc(t) { var d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+
+    function addUser(text) {
+        var el = document.createElement('div');
+        el.className = 'msg msg-user';
+        el.innerHTML = esc(text);
+        msgs.appendChild(el); scrollDown();
+    }
+    function addBot(html) {
+        var el = document.createElement('div');
+        el.className = 'msg msg-bot';
+        el.innerHTML = '<div class="who"><span class="ava"><i class="fa-solid fa-robot"></i></span><span>Asistente</span></div>' + html;
+        msgs.appendChild(el); scrollDown();
+        return el;
+    }
+    function addTyping() {
+        var el = document.createElement('div');
+        el.className = 'msg msg-bot';
+        el.id = 'typing';
+        el.innerHTML = '<div class="typing"><span class="dot"></span><span class="dot"></span><span class="dot"></span> <span style="color:var(--s-400);font-size:12px;">analizando…</span></div>';
+        msgs.appendChild(el); scrollDown();
+    }
+    function removeTyping() { var t = document.getElementById('typing'); if (t) t.remove(); }
+    function scrollDown() { msgs.scrollTop = msgs.scrollHeight; }
+
+    function askSuggestion(btn) { input.value = btn.textContent.trim(); sendMsg(); }
+
+    async function sendMsg() {
+        var text = input.value.trim();
+        if (!text) return;
+        addUser(text);
+        input.value = '';
+        input.disabled = true; sendBtn.disabled = true;
+        addTyping();
+
+        try {
+            var res = await fetch(sendUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                body: JSON.stringify({ message: text, history: history })
+            });
+            var data = await res.json();
+            removeTyping();
+            var reply = (data && data.reply) ? data.reply : 'Sin respuesta.';
+            // simple formatting: line breaks
+            addBot(esc(reply).replace(/\n/g, '<br>'));
+            history.push({ role: 'user', content: text });
+            history.push({ role: 'assistant', content: reply });
+            if (history.length > 20) history = history.slice(-20);
+        } catch (e) {
+            removeTyping();
+            addBot('Ocurrió un error al consultar al asistente. Intenta de nuevo.');
+        } finally {
+            input.disabled = false; sendBtn.disabled = false; input.focus();
+        }
+    }
+</script>
+}

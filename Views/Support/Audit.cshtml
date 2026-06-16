@@ -1,0 +1,64 @@
+@model List<BankAdmin.Models.AuditLogModel>
+@{
+    ViewBag.Title = "Auditoría";
+    string ActionLabel(string a) => a switch
+    {
+        "user.created" => "Usuario creado",
+        "user.updated" => "Usuario actualizado",
+        "user.active" => "Usuario reactivado",
+        "user.inactive" => "Usuario desactivado",
+        "account.created" => "Cuenta creada",
+        "account.updated" => "Cuenta actualizada",
+        "account.status_updated" => "Estado de cuenta",
+        "config.updated" => "Configuración",
+        _ => a
+    };
+    string ActionColor(string a) =>
+        a.Contains("created") ? "var(--green)" :
+        a.Contains("inactive") || a.Contains("status") ? "#f59e0b" :
+        a.Contains("updated") ? "var(--blue)" : "var(--purple)";
+}
+
+<main class="main">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow">@ViewBag.TenantName</div>
+            <h1 class="page-title">Auditoría</h1>
+            <p class="page-subtitle">Registro de las acciones administrativas del banco.</p>
+        </div>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-error"><i class="fa-solid fa-circle-exclamation"></i><span>@TempData["Error"]</span></div>
+    }
+
+    <div class="card">
+        <div class="card-body" style="padding:0;">
+            @if (Model.Count == 0)
+            {
+                <div class="empty"><div class="empty-title">Sin registros</div><div class="empty-text">Aún no hay acciones auditadas.</div></div>
+            }
+            else
+            {
+                <div class="table-wrap" style="border:none;">
+                    <table class="data">
+                        <thead><tr><th>Acción</th><th>Realizada por</th><th>Objetivo</th><th>IP</th><th>Fecha</th></tr></thead>
+                        <tbody>
+                        @foreach (var l in Model)
+                        {
+                            <tr>
+                                <td><span style="font-weight:600;color:@ActionColor(l.Action);">@ActionLabel(l.Action)</span></td>
+                                <td>@(l.PerformedByName ?? (l.PerformedByUserId != null ? l.PerformedByUserId[..Math.Min(8, l.PerformedByUserId.Length)] + "…" : "Sistema"))</td>
+                                <td>@(l.TargetType ?? "—")@(l.TargetId != null ? $" · {l.TargetId[..Math.Min(8, l.TargetId.Length)]}…" : "")</td>
+                                <td style="font-family:var(--mono);font-size:12px;color:var(--s-500);">@(l.IpAddress ?? "—")</td>
+                                <td>@(l.CreatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "—")</td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</main>

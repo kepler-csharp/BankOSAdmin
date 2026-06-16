@@ -1,0 +1,93 @@
+@model BankAdmin.Models.EditAccountViewModel
+@{
+    ViewBag.Title = "Editar cuenta";
+}
+
+<main class="main" style="max-width:760px;">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow"><a href="@Url.Action("Index")" style="color:var(--s-400);text-decoration:none;">Cuentas</a> · Editar</div>
+            <h1 class="page-title">Editar cuenta</h1>
+            <p class="page-subtitle" style="font-family:var(--mono);">@Model.AccountNumber</p>
+        </div>
+    </div>
+
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert alert-error"><i class="fa-solid fa-circle-exclamation"></i><span>@ViewBag.Error</span></div>
+    }
+
+    @if (Model.CurrentBalance > 0)
+    {
+        <div class="alert alert-warning">
+            <i class="fa-solid fa-sack-dollar"></i>
+            <span><b>Atención:</b> esta cuenta tiene un saldo de <b>@Model.CurrentBalance.ToString("N2") @Model.Currency</b>. Modifica con cuidado: cualquier cambio se notifica al titular.</span>
+        </div>
+    }
+
+    <form method="post" action="@Url.Action("Edit")" id="acc-form">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="AccountNumber" />
+        <input type="hidden" asp-for="CurrentBalance" />
+        <div class="card">
+            <div class="card-body">
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label" asp-for="Currency">Moneda</label>
+                        <select class="form-input" asp-for="Currency">
+                            <option value="COP" selected="@(Model.Currency == "COP")">COP</option>
+                            <option value="USD" selected="@(Model.Currency == "USD")">USD</option>
+                            <option value="EUR" selected="@(Model.Currency == "EUR")">EUR</option>
+                            <option value="GBP" selected="@(Model.Currency == "GBP")">GBP</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" asp-for="Status">Estado</label>
+                        <select class="form-input" asp-for="Status">
+                            <option value="active" selected="@(Model.Status == "active")">Activa</option>
+                            <option value="inactive" selected="@(Model.Status == "inactive")">Inactiva</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label" asp-for="Balance">Saldo</label>
+                    <input class="form-input" type="number" step="0.01" min="0" asp-for="Balance" required />
+                    <div class="form-hint">Modificar el saldo es una operación sensible. El titular recibirá una notificación.</div>
+                </div>
+            </div>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px;">
+            <a class="btn btn-secondary" href="@Url.Action("Index")">Cancelar</a>
+            <button type="button" class="btn btn-brand btn-lg" onclick="confirmSave()"><i class="fa-solid fa-check"></i> Guardar cambios</button>
+        </div>
+    </form>
+</main>
+
+<!-- money-sensitive save confirmation -->
+<div class="modal-overlay" id="saveModal" onclick="if(event.target===this)document.getElementById('saveModal').classList.remove('open')">
+    <div class="modal" role="dialog" aria-modal="true">
+        <div class="modal-head">
+            <div class="modal-icon warn"><i class="fa-solid fa-sack-dollar"></i></div>
+            <h3>Confirmar cambios en la cuenta</h3>
+        </div>
+        <div class="modal-body">
+            Vas a guardar cambios en la cuenta <b style="font-family:var(--mono);">@Model.AccountNumber</b>.
+            @if (Model.CurrentBalance > 0)
+            {
+                <div class="modal-money"><i class="fa-solid fa-triangle-exclamation"></i><span>La cuenta tiene un saldo de <b>@Model.CurrentBalance.ToString("N2") @Model.Currency</b>. Verifica que los cambios sean correctos. El titular será notificado.</span></div>
+            }
+        </div>
+        <div class="modal-foot">
+            <button type="button" class="btn btn-secondary" onclick="document.getElementById('saveModal').classList.remove('open')">Cancelar</button>
+            <button type="button" class="btn btn-brand" onclick="document.getElementById('acc-form').submit()">Sí, guardar</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    function confirmSave() { document.getElementById('saveModal').classList.add('open'); }
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') document.getElementById('saveModal').classList.remove('open'); });
+</script>
+}
