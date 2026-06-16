@@ -130,8 +130,34 @@ En el login eliges el banco, el correo y la contraseña. Solo entran usuarios co
   desde esta app (requiere configurar `Email`).
 - **Configuración** se lee/actualiza en `bankos_central.tenant_configs`.
 
-### Correos (opcional)
-Completa la sección `Email` y pon `"Enabled": true`. Con `false` solo se registran en el log.
+### Correos (alta/edición/activación de usuarios, respuesta de PQRS y certificado PDF)
+
+El envío de correos **ya viene activado** (`Email:Enabled: true`). Para que **lleguen de verdad**
+debes poner credenciales SMTP reales en la sección `Email` de `appsettings.json`:
+
+```json
+"Email": {
+  "Enabled": true,
+  "Host": "smtp.gmail.com",
+  "Port": "587",
+  "Username": "tucorreo@gmail.com",
+  "Password": "app-password-de-16-caracteres",
+  "From": "tucorreo@gmail.com",
+  "FromName": "BankOs"
+}
+```
+
+- Con Gmail necesitas una **«App Password»** (no tu clave normal): activa la verificación en dos
+  pasos y genera una contraseña de aplicación de 16 caracteres en tu cuenta de Google.
+- Puedes usar cualquier SMTP (SendGrid, Mailgun, tu propio servidor, etc.) cambiando `Host`/`Port`.
+- Mientras los valores sean los de ejemplo (`CAMBIA_ESTO@gmail.com`), las acciones funcionan
+  igual pero el envío fallará en segundo plano y solo verás un aviso en el log
+  (`Failed to send email...`). No rompe nada; el certificado igual se descarga.
+- Para **desactivar** correos en pruebas, pon `"Enabled": false`.
+
+Se envían automáticamente: credenciales al crear un usuario, resumen de cambios al editarlo,
+aviso al activar/desactivar, respuesta de PQRS y el **certificado PDF** a quien lo solicite
+desde el portal de autoservicio.
 
 ### Asistente IA (opcional)
 Agrega `OpenAI:ApiKey`. Sin clave, el chat avisa y no falla.

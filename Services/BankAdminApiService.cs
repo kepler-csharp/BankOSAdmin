@@ -371,13 +371,14 @@ public class BankAdminApiService
             // Self-service certificate flow authenticates as the client; scope to their accounts.
             var session = SessionToken.TryParse(token);
             var scopeToUser = session is { IsAdmin: false };
+            var scopeClause = scopeToUser ? "AND user_id = @uid::uuid" : "";
 
-            var sql = """
+            var sql = $"""
                 SELECT id::text AS id, account_number, user_id::text AS user_id, balance,
                        currency, status, created_at, updated_at
                 FROM accounts
                 WHERE deleted_at IS NULL
-                """ + (scopeToUser ? " AND user_id = @uid::uuid" : "") + """
+                {scopeClause}
                 ORDER BY created_at DESC NULLS LAST
                 """;
 
@@ -540,17 +541,18 @@ public class BankAdminApiService
             if (!string.IsNullOrWhiteSpace(type)) where.Add("type = @type");
             if (!string.IsNullOrWhiteSpace(accountId))
                 where.Add("(account_id = @acc::uuid OR destination_account_id = @acc::uuid)");
+            var whereClause = where.Count > 0 ? "WHERE " + string.Join(" AND ", where) : "";
 
-            var sql = """
+            var sql = $"""
                 SELECT id::text AS id, type, status,
                        account_id::text AS account_id,
                        destination_account_id::text AS destination_account_id,
                        amount, converted_amount, currency, destination_currency,
                        exchange_rate, fee, fee_type, balance_after, description, created_at
                 FROM transactions
-                """
-                + (where.Count > 0 ? " WHERE " + string.Join(" AND ", where) : "")
-                + " ORDER BY created_at DESC LIMIT @limit";
+                {whereClause}
+                ORDER BY created_at DESC LIMIT @limit
+                """;
 
             var parameters = new DynamicParameters();
             parameters.Add("limit", perPage);
